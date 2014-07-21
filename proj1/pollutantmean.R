@@ -33,6 +33,7 @@ pollutantmean <- function(directory, pollutant, id = 1:332) {
 
     files <- getFileList(directory, id)
     values <- getPollutants(files, pollutant)
-    sprintf("%0.3f", mean(values))
+    #sprintf("%0.3f", mean(values))
+    mean(values)
     
 }

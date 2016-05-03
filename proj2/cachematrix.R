@@ -6,19 +6,21 @@
 
 ## makeCacheMatrix(matrix)
 ## wrapper around a standard R matrix, proving getter and setter methods,
-## and getinverse and setinverse methods to store a cached version of the 
+## and getinverse and setinverse method s to store a cached version of the 
 ## inverse.  If the underlying matrix is changed via its setter, the cached
 ## inverse is invalidated
 
 makeCacheMatrix <- function(m = matrix()) {
         inverse <- NULL
+        
+        #define object functions; set, get, getinverse, & setinverse
         set <- function(y) {
-                m <<- y
-                inverse <<- NULL
+                m <<- y				#set matrix in global environment
+                inverse <<- NULL	#clear global matrix values
         }
-        get <- function() m
-        setinverse <- function(mtx) inverse <<- mtx
-        getinverse <- function() inverse
+        get <- function() m			#get matrix from global environment
+        setinverse <- function(mtx) inverse <<- mtx  #set matrix inverse in global environment
+        getinverse <- function() inverse			 #get matrix from global environment
         list(set = set, get = get,
              setinverse = setinverse,
              getinverse = getinverse)
@@ -26,16 +28,21 @@ makeCacheMatrix <- function(m = matrix()) {
 
 
 cacheSolve <- function(m, ...) {
+		#cache inverse inverse (inv) is NULL
+		
         inv <- m$getinverse()
         if(!is.null(inv)) {
                 message("getting cached data")
                 return(inv)
         }
+        
         data <- m$get()
         inv <- solve(data, ...)
         m$setinverse(inv)
         inv
 }
+
+
 
 ## Test function to exercise above code.  Would be better written as a unit test
 ## using RUnit.
@@ -47,7 +54,7 @@ cacheSolve <- function(m, ...) {
 ## [1,]    1    0
 ## [2,]    0    1
 
-test <- function() 
+test_cacheSolve <- function() 
 {
     amatrix = makeCacheMatrix(matrix(c(1,2,3,4), nrow=2, ncol=2))
     amatrix$get()         # Returns original matrix
@@ -62,3 +69,19 @@ test <- function()
     
     amatrix$get() %*% amatrix$getinverse() # returns the identity matrix
 }
+
+
+test_makeCacheMatrix <- function () {
+
+testmtx <- makeCacheMatrix(matrix(1:4,2,2))
+testmtx$setinverse(solve(testmtx$get()))
+testmtx$get()
+testmtx$getinverse()
+testmtx$set(matrix(3:6,2,2))
+testmtx$get()
+
+}
+
+
+
+

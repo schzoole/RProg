@@ -1,4 +1,4 @@
-complete <- function(directory, id = 1:332) {
+complete <- function(directory, ids){
     ## 'directory' is a character vector of length 1 indicating
     ## the location of the CSV files
     
@@ -12,22 +12,55 @@ complete <- function(directory, id = 1:332) {
     ## ...
     ## where 'id' is the monitor ID number and 'nobs' is the
     ## number of complete cases
-    
-    cnt <- 1
-    len = length(id)
-    f <- data.frame(id=numeric(len), nobs=numeric(len)) # empty data frame
-    
-    # calculate good values in each file
-    for (i in id) {
-        # read in file
-        file <- sprintf("%s/%03d.csv", directory, i)
-        data <- read.csv(file)
-        
-        # insert into data frame
-        f$id[cnt] = i
-        f$nobs[cnt] = nrow(data[complete.cases(data),])
-        cnt <- cnt + 1
-    }
-    
-    f
+
+
+	fs<- getSpecDataFileNames(directory,ids)
+	dataframe <- getCsv_AsDataFrame(fs)
+	dataframecc <- subset(dataframe, complete.cases(dataframe))
+	
+	nobs <- tapply(dataframecc$ID, dataframecc$ID, length)
+	id <- as.numeric(rownames(nobs))
+	m <- cbind(id,nobs)
+	row.names(m)<-NULL
+	df <- as.data.frame(m)
+	
+	if (head(ids,1) > tail(ids,1)) {
+		df[rev(order(df$id)),]
+	} else {
+		df[order(df$id),]
+	}
 }
+
+
+#TEST CASES
+test_output1 <- function(){
+	a <- complete("specdata", 1)
+	b <- data.frame(id = c(1), nobs = c(117))
+	identical(a,b) 
+}
+
+test_output2 <- function(){
+	a <- complete("specdata",  c(2,4,8,10,12))
+	b <- data.frame(id = c(2,4,8,10,12), 
+	nobs = c(1041,474,192,148,96))
+	identical(a,b) 
+}
+
+test_output3 <- function(){
+	a <- complete("specdata", 30:25)
+	b <- data.frame(id = 30:25, 
+	nobs = c(932,711,475,338,586,463))
+	identical(a,b) 
+}
+
+test_output4 <- function(){
+	a <- complete("specdata", 3)
+	b <- data.frame(id = c(3), nobs = c(243))
+	identical(a,b) 
+}
+
+test_output1()
+test_output2()
+test_output3()
+test_output4()
+

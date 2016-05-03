@@ -1,39 +1,109 @@
-getFileList <- function(directory, id) {
+getSpecDataFileNames <- function(directory, id) {
+    ## 'directory' is a character vector of length 1 indicating
+    ## the location of the CSV files
+
+    ## 'id' is an integer vector indicating the monitor ID numbers
+    ## to be used
+    
+    ## Return an character vector of fully qualified names.
+
+	if (identical(NULL,directory) == TRUE) {
+		directory <- getwd()
+	}
+	if (identical(NULL,1) == TRUE { id <-1 }
+
     files <- character()
     # generate list of filenames
     for (i in id) {
-        files <- c(files, sprintf("%s/%03d.csv", directory, i))
+        files <- c(files, sprintf("%s\\%03d.csv", directory, i))
     }
     files
 }
 
-getPollutants <- function(files, pollutant) {
-    values <- numeric()
-    for (i in seq_along(files)) {
-        data <- read.csv(files[i])
-        bad = is.na(data[pollutant])
-        values <- c(values, data[pollutant][!bad])
-    }    
-    values
+getFilesFromDir <- function(directory){
+    ## 'directory' is a character vector of length 1 indicating
+    ## the location of the CSV files
+    
+    ## Return an character vector of fully qualified files names from the directory.
+
+	files <- dir(directory)
 }
 
-pollutantmean <- function(directory, pollutant, id = 1:332) {
+getCsv_AsList <- function(files) {
+    ## 'files' is a character vector of length n indicating fully qualifed file paths & names.
+    
+    ## Return an list of data retreived from files. 
+    
+	list <-	lapply(files, function(i) {read.csv(i)})
+}
+
+getCsv_AsDataFrame <- function(files) {
+    ## 'files' is a character vector of length n indicating fully qualifed file paths & names.
+    
+    ## Return a data frame of data retreived from files. 
+
+	list <-	getCsv_AsList(files)
+	dataframe <- do.call("rbind", list)
+}
+
+getVector_FromDataFrame <- function(dataframe, colname, removeNA) {
+	## 'dataframe' is a data.frame used as source data.
+	## 'colname' is the data.frame column used as the target column.
+	
+	## Returns a character vector of data from the data.frame referenced column.
+	
+    values <- numeric()
+    if (identical(removeNA,TRUE) == TRUE) {
+    	rmdata = is.na(dataframe[colname])
+	    values <- c(values, dataframe[colname][!rmdata])    
+    } else {
+	    values <- c(values, dataframe[colname])    
+	}
+}
+
+
+getPollutantMean <- function(directory, colname, fileset){
     ## 'directory' is a character vector of length 1 indicating
     ## the location of the CSV files
 
-    ## 'pollutant' is a character vector of length 1 indicating
+    ## 'fileset' is an integer vector indicating the monitor ID numbers
+    ## to be used
+    
+    ## 'colname' is a character vector of length 1 indicating
     ## the name of the pollutant for which we will calculate the
     ## mean; either "sulfate" or "nitrate".
     
-    ## 'id' is an integer vector indicating the monitor ID numbers
-    ## to be used
-    
     ## Return the mean of the pollutant across all monitors list
     ## in the 'id' vector (ignoring NA values)
-
-    files <- getFileList(directory, id)
-    values <- getPollutants(files, pollutant)
-    #sprintf("%0.3f", mean(values))
-    mean(values)
-    
+	
+	fs <- getSpecDataFileNames(directory, fileset)
+	dataframe <- getCsv_AsDataFrame(fs)
+	data <- getVector_FromDataFrame(dataframe, colname, TRUE)
+	mean(data)
 }
+
+#TEST CASES
+test_output1 <- function() {
+	a <- getPollutantMean("specdata", "sulfate", 1:10)
+	b <- 4.064128
+	round(a[1],6)==b[1]
+}
+
+test_output2 <- function() {
+	a <- getPollutantMean("specdata", "nitrate", 70:72)
+	b <- 1.732979
+	round(a[1],6)==b[1]
+}
+
+test_output3 <- function() {
+	a <- getPollutantMean("specdata", "nitrate", 23)
+	b <- 1.280833
+	round(a[1],6)==b[1]
+}
+
+
+test_output1()
+test_output2()
+test_output3()
+
+

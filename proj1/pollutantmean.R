@@ -10,7 +10,6 @@ getSpecDataFileNames <- function(directory, id) {
 	if (identical(NULL,directory) == TRUE) {
 		directory <- getwd()
 	}
-	if (identical(NULL,1) == TRUE { id <-1 }
 
     files <- character()
     # generate list of filenames
@@ -107,3 +106,5 @@ test_output2()
 test_output3()
 
 
+
+#rm(list=ls(all=TRUE))

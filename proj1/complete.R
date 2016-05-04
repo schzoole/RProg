@@ -1,4 +1,5 @@
-complete <- function(directory, ids){
+
+getCountsByColumn_asDataFrame <- function(dataframe, colname) {
     ## 'directory' is a character vector of length 1 indicating
     ## the location of the CSV files
     
@@ -14,21 +15,46 @@ complete <- function(directory, ids){
     ## number of complete cases
 
 
-	fs<- getSpecDataFileNames(directory,ids)
-	dataframe <- getCsv_AsDataFrame(fs)
-	dataframecc <- subset(dataframe, complete.cases(dataframe))
-	
-	nobs <- tapply(dataframecc$ID, dataframecc$ID, length)
+	# Massage, format, and order data.frame.
+	# TODO:  revise tapply for dynamic columns. :(
+	nobs <- tapply(dataframe$ID, dataframe[colname], length)
 	id <- as.numeric(rownames(nobs))
 	m <- cbind(id,nobs)
 	row.names(m)<-NULL
 	df <- as.data.frame(m)
 	
-	if (head(ids,1) > tail(ids,1)) {
+	if (head(id,1) > tail(id,1)) {
 		df[rev(order(df$id)),]
 	} else {
 		df[order(df$id),]
 	}
+}
+
+
+complete <- function(directory, ids){
+	## endpoint for RProg course.  
+    ## 'directory' is a character vector of length 1 indicating
+    ## the location of the CSV files
+    
+    ## 'id' is an integer vector indicating the monitor ID numbers
+    ## to be used
+    
+    ## Return a data frame of the form:
+    ## id nobs
+    ## 1  117
+    ## 2  1041
+    ## ...
+    ## where 'id' is the monitor ID number and 'nobs' is the
+    ## number of complete cases
+
+	# Populate dataframe with fileset specified.
+	fs<- getSpecDataFileNames(directory,ids)
+	dataframe <- getCsv_AsDataFrame(fs)
+	
+	# Populate complete.cases data.frame from dataframe.
+	dataframecc <- subset(dataframe, complete.cases(dataframe))
+	
+	getCountsByColumn_asDataFrame(dataframecc, "ID")
 }
 
 

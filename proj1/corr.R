@@ -1,35 +1,5 @@
-corr <- function(directory, threshold = 0) {
-    ## 'directory' is a character vector of length 1 indicating
-    ## the location of the CSV files
-    
-    ## 'threshold' is a numeric vector of length 1 indicating the
-    ## number of completely observed observations (on all
-    ## variables) required to compute the correlation between
-    ## nitrate and sulfate; the default is 0
-    
-    ## Return a numeric vector of correlations
-    
-    id     <- 1:332
-    values <- numeric()
-    
-    # calculate good values in each file
-    #for (i in id) {
-        # read in file
-        file <- sprintf("%s/%03d.csv", directory, i)
-        data <- read.csv(file)
-        
-        # find complete observations
-        comp <- data[complete.cases(data),]
-        if (nrow(comp) >= threshold) {
-            correlation = cor(comp[2], comp[3])[1]
-            values <- c(values, correlation)
-        }
-    }
-    
-    values
-}
 
-corr2 <- function (directory, threshold = 0) {
+corr <- function (directory, threshold = 0) {
 
 	# Populate dataframe with fileset specified.
 	directory <- "C:\\Users\\Society\\Documents\\specdata"
@@ -55,14 +25,22 @@ corr2 <- function (directory, threshold = 0) {
 	df
 }
 
+#test_output1 <- function {
+#Test Case
+#source("corr.R")
+#source("complete.R")
+#cr <- corr("specdata", 150)
+#head(cr)
 
-cr <- corr2("specdata", 150)
-head(cr)
-summary(cr)
+# Expected Output
+# [1] -0.01896 -0.14051 -0.04390 -0.06816 -0.12351 -0.07589
 
-cr <- corr2("specdata", 400)
-head(cr)
+#}
+
+#test_output2 <- function {
 summary(cr)
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -0.2110 -0.0500  0.0946  0.1250  0.2680  0.7630
 
 
 

@@ -73,12 +73,12 @@ test_cacheSolve <- function()
 
 test_makeCacheMatrix <- function () {
 
-testmtx <- makeCacheMatrix(matrix(1:4,2,2))
-testmtx$setinverse(solve(testmtx$get()))
-testmtx$get()
-testmtx$getinverse()
-testmtx$set(matrix(3:6,2,2))
-testmtx$get()
+	testmtx <- makeCacheMatrix(matrix(1:4,2,2))
+	testmtx$setinverse(solve(testmtx$get()))
+	testmtx$get()
+	testmtx$getinverse()
+	testmtx$set(matrix(3:6,2,2))
+	testmtx$get()
 
 }
 

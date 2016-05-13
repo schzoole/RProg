@@ -4,74 +4,82 @@ rankall <- function(outcome, num = "best") {
     ## For each state, find the hospital of the given rank
     ## Return a data frame with the hospital names and the
     ## (abbreviated) state name
-    col_const <- list(HA=11, HF=17, PN=23, STATE_COL=7, HOSP_COL=2)
+
+    col_const <- list(HA="Heart.Attack", HF="Heart.Failure", PN="Pneumonia")
     out_const <- list(HA="heart attack", HF="heart failure", PN="pneumonia")
+    col_name <- paste("Hospital.30.Day.Death..Mortality..Rates.from." , col_const[[match(outcome, out_const)]],sep="")
+    if ((outcome %in% out_const) == FALSE) {
+      stop("invalid outcome")
+    }
     
-    min_rate  <- Inf
-    hosp_name <- "zzz"
-    cur_row   <- 0
-    rank_row  <- Inf
+        
+    ## Read outcome filtered_obs
+    landing_data <- read.csv("outcome-of-care-measures.csv", colClasses = "character", stringsAsFactors=FALSE )
+    data <- cbind.data.frame(
+      V1 = landing_data$Provider.Number, 
+      V2 = landing_data$Hospital.Name, 
+      V3 = landing_data$State, 
+      V4 = landing_data[,col_name],
+      stringsAsFactors=FALSE
+    )
+    #Add numeric column for evaluation
+    data <- cbind(data, "V5" =as.numeric(data$V4) )
+
+    #filter and rank data.fram
+    filtered_obs <- as.data.table(subset(data, !is.na(data$V5)))
+    #order dataset for ties.method
+    filtered_obs <- filtered_obs[order(filtered_obs$V3, filtered_obs$V5, filtered_obs$V2)]
+    #rank performance 
+    dt<-filtered_obs[,rn:=as.double(rank(V5,ties.method = "first")), by="V3"]
+    #rank worst performance
+    dt<-filtered_obs[,rnworst:=as.double(rank(-rn, ties.method = "first")), by="V3"]
     
     # assign rank we are looking for
     if (num == "best") {
         rank_row <- 1
+        dt_sub <- subset(dt, dt$rn==rank_row )
     } else if (num == "worst") {
-        rank_row <- Inf
+        rank_row <- 1
+        dt_sub <- subset(dt, dt$rnworst==rank_row )
     } else {
         rank_row = as.numeric(num)
         if (is.na(rank_row)) {
             stop("invalid num")
         }
+        dt_sub <- subset(dt, dt$rn==rank_row )
     }
-    ## Check that outcome is valid
-    
-    if ((outcome %in% out_const) == FALSE) {
-        stop("invalid outcome")
-    }
-    
-    ## match outcome to the appropriate column
-    out_col <- col_const[[match(outcome, out_const)]]
-    
-    ## Read outcome data
-    out_data <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
-    out_data[, out_col] <- as.numeric(out_data[, out_col])
-    
-    ## sort by specified outcome
-    sorted_data <- out_data[order(out_data$State, out_data[,out_col], out_data$Hospital.Name),]
-    
-    # remove "Not Availables"
-    clean_data <- 
-        sorted_data[!na.omit(sapply(sorted_data[,out_col], is.na)),]
-    
-    ## print top results
-    # print(head(cbind(clean_data[c("Hospital.Name", "State")], clean_data[,out_col]))    )
-    
-    ## Return hospital name in that state with specified ranking
 
-    cur_state <- NULL
-    dd <- data.frame(hospital = character(), state = character())
-    colnames(dd) <- c("hospital", "state")
     
-    nr <- nrow(clean_data) 
+    #Derive uniques for outer join
+    df_state_all <- unique(data$V3)
+    #df_state_all[dt_sub$V3]
+    df_state_sub <- unique(dt_sub$V3)
+    #Derive missing states
+    missingStates <- df_state_all[!as.data.frame(df_state_all %in% df_state_sub)]
+
+    #union data with missing state data
+    ph <- rep(0,length(missingStates))
+    df_missing_state_data <- data.frame(
+            V1 = ph, 
+            V2 = rep(NA,length(missingStates)), 
+            V3 = missingStates, 
+            V4 = ph, V5 = ph,
+            rn = rep(rank_row,length(missingStates)))
+    df_all_state_data <- rbind(dt_sub, df_missing_state_data, fill=TRUE, stringsAsFactors = FALSE)
     
-    for (i in 1:nr)
-    {
-        if (is.null(cur_state) || cur_state != clean_data$State[i] )
-        {
-            cur_state <- clean_data$State[i]
-            # if we want "worst", find the last hospital in this state
-            if (num == "worst") {
-                j <- i
-                while (j <= nr && cur_state == clean_data$State[j]) {
-                    j <- j + 1
-                }
-                rank_row <- j - i
-            }
-            dd <- rbind(dd, data.frame(
-                                    hospital = clean_data$Hospital.Name[i+rank_row-1],
-                                    state    = cur_state))
-        }
-    }
+    #order and output data
+    df_all_state_data[order(df_all_state_data$V3),]
     
-    dd
 }
+
+#head(rankall("heart attack", 20), 10)
+#tail(rankall("pneumonia", "worst"), 3)
+#tail(rankall("heart failure"), 10 )
+r <- rankall("heart attack", 4)
+as.character(subset(r, V3 == "HI")$V2)
+
+r <- rankall("pneumonia", "worst")
+as.character(subset(r, V3 == "NJ")$V2)
+
+r <- rankall("heart failure", 10)
+as.character(subset(r, V3 == "NV")$V2)

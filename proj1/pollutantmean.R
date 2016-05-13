@@ -81,6 +81,12 @@ getPollutantMean <- function(directory, colname, fileset){
 	mean(data)
 }
 
+pollutantmean <- function(directory, colname, fileset){
+	getPollutantMean(directory, colname, fileset)
+}
+
+pollutantmean("specdata", "sulfate", 1:10) 
+
 #TEST CASES
 test_output1 <- function() {
 	a <- getPollutantMean("specdata", "sulfate", 1:10)
@@ -108,3 +114,6 @@ test_output3()
 
 
 #rm(list=ls(all=TRUE))
+
+
+

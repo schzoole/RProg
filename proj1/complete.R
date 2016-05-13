@@ -17,7 +17,7 @@ getCountsByColumn_asDataFrame <- function(dataframe, colname) {
 
 	# Massage, format, and order data.frame.
 	# TODO:  revise tapply for dynamic columns. :(
-	nobs <- tapply(dataframe$ID, dataframe[colname], length)
+	nobs <- tapply(dataframe$ID, dataframe$ID, length)
 	id <- as.numeric(rownames(nobs))
 	m <- cbind(id,nobs)
 	row.names(m)<-NULL
@@ -89,4 +89,9 @@ test_output1()
 test_output2()
 test_output3()
 test_output4()
+
+
+
+
+
 

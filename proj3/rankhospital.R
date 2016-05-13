@@ -4,13 +4,44 @@ rankhospital <- function(state, outcome, num = "best") {
     ## Return hospital name in that state with the given rank
     ## 30-day death rate
     # constants for state, heart attack, heart failure, and pneumonia rates
-    col_const <- list(HA=11, HF=17, PN=23, STATE_COL=7, HOSP_COL=2)
+  
+    options(warn=-1)
+    col_const <- list(HA="Heart.Attack", HF="Heart.Failure", PN="Pneumonia")
     out_const <- list(HA="heart attack", HF="heart failure", PN="pneumonia")
+    col_name <- paste("Hospital.30.Day.Death..Mortality..Rates.from." , col_const[[match(outcome, out_const)]],sep="")
     
-    min_rate  <- Inf
-    hosp_name <- "zzz"
-    cur_row   <- 0
-    rank_row  <- Inf
+    ## Read outcome filtered_obs
+    landing_data <- read.csv("outcome-of-care-measures.csv", colClasses = "character", stringsAsFactors=FALSE )
+    
+    ## Check that state and outcome are valid
+    if (state %in% landing_data$State == FALSE) {
+      stop("invalid state")
+    }
+        
+    
+    if ((outcome %in% out_const) == FALSE) {
+      stop("invalid outcome")
+    }
+    
+    
+    data <- cbind.data.frame(
+      V1 = landing_data$Provider.Number, 
+      V2 = landing_data$Hospital.Name, 
+      V3 = landing_data$State, 
+      V4 = landing_data[,col_name],
+      stringsAsFactors=FALSE
+    )
+    #Add numeric column for evaluation
+    data <- cbind(data, "V5" =as.numeric(data$V4) )
+    
+    #filter and rank data.fram
+    filtered_obs <- subset(data, data$V3 == state & !is.na(data$V5))
+    filtered_obs["rank"] <- as.numeric(NA)
+    filtered_obs$rank[order(filtered_obs$V5, filtered_obs$V2)] <- 1:nrow(filtered_obs)
+
+    ## unload landing datasets
+    #rm(landing_data)
+    #rm(data)
     
     # assign rank we are looking for
     if (num == "best") {
@@ -23,43 +54,39 @@ rankhospital <- function(state, outcome, num = "best") {
             stop("invalid num")
         }
     }
-    ## Check that state and outcome are valid
-    if (state %in% out_data[, col_const$STATE_COL] == FALSE) {
-        stop("invalid state")
-    }
     
-    if ((outcome %in% out_const) == FALSE) {
-        stop("invalid outcome")
-    }
-    
-    ## match outcome to the appropriate column
-    out_col <- col_const[[match(outcome, out_const)]]
-    
-    ## Read outcome data
-    out_data <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
-    out_data[, out_col] <- as.numeric(out_data[, out_col])
-    
-    ## get items from state of interest only
-    state_data <- out_data[out_data$State == state,]
-    
-    ## sort by specified outcome
-    sorted_data <- state_data[order(state_data[,out_col], state_data$Hospital.Name),]
-    
-    # remove "Not Availables"
-    clean_data <- 
-        sorted_data[!na.omit(sapply(sorted_data[,out_col], is.na)),]
-
     # if we want "worst", make sure we index only available values
     if (is.infinite(rank_row)) {
-        rank_row <- nrow(clean_data)
+        rank_row <- nrow(filtered_obs)
     }
     
-    ## print top results
-    # print(head(cbind(clean_data[c("Hospital.Name", "State")], clean_data[,out_col]))    )
-    
     ## Return hospital name in that state with specified ranking
-    hosp_name <- clean_data[rank_row,]$Hospital.Name
+    hosp_name <- subset(filtered_obs, filtered_obs$rank==rank_row)
     
-    hosp_name
+    if( length(hosp_name$V2) == 0) {
+      NA
+      } else {
+      as.character(hosp_name$V2)
+      }
     
 }
+
+test_output1 <- function() {
+  output <- rankhospital("TX","heart failure", 4)
+  identical(output, "DETAR HOSPITAL NAVARRO")
+}
+
+test_output2 <- function() {
+  output <- rankhospital("MD", "heart attack", "worst")
+  identical(output, "HARFORD MEMORIAL HOSPITAL")
+}
+
+test_output3 <- function() {
+  output <- rankhospital("MN", "heart attack", 5000)
+  identical(output, NA)
+}
+
+test_output1()
+test_output2()
+test_output3()
+

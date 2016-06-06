@@ -38,17 +38,17 @@ The sensor signals (accelerometer and gyroscope) were pre-processed by applying 
 ##Data Model
 For the above data sources and points, integration & normalization of data was required into the following model.
 data.frame':	observation:
- -$ activityid : int         attribute indicating the integer activity id.  values {1,2,3,4,5,6}
- -$ activity   : Factor      attribute indicating the string activity type. values {"LAYING","SITTING",..}
- -$ subjectid  : int         attribute indicating human participating subject id
- -$ environment: chr         attribute indicating the study environment; value {test or train}  
- -$ signal     : Facactor    attribute indicating signal type; t (time) or f (frequency)
- -$ feature    : Factor      attribute indicating observation feature; 
- -$ axis       : Factor      attribute indicating the axis plane; x, y or z
- -$ calculation: Factor      attribute indicating what calculation was measured.
- -$ variable   : Factor      staging attribute indicating the pre normalized string.value  signal-feature-calculation-axis*
+ - $ activityid : int         attribute indicating the integer activity id.  values {1,2,3,4,5,6}
+ - $ activity   : Factor      attribute indicating the string activity type. values {"LAYING","SITTING",..}
+ - $ subjectid  : int         attribute indicating human participating subject id
+ - $ environment: chr         attribute indicating the study environment; value {test or train}  
+ - $ signal     : Facactor    attribute indicating signal type; t (time) or f (frequency)
+ - $ feature    : Factor      attribute indicating observation feature; 
+ - $ axis       : Factor      attribute indicating the axis plane; x, y or z
+ - $ calculation: Factor      attribute indicating what calculation was measured.
+ - $ variable   : Factor      staging attribute indicating the pre normalized string.value  signal-feature-calculation-axis*
                             *pattern applies to 95% of domain values.
- -$ value      : num         measure indicating observation value, range from 0 to 1 
+ - $ value      : num         measure indicating observation value, range from 0 to 1 
                             Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
                             0.2572  0.2703  0.2748  0.2728  0.2755  0.2860 
 

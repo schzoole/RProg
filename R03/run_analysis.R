@@ -14,7 +14,7 @@ if (!file.exists(filename)) {
   unzip(filename) 
 }
 
-
+ 
 #Load activity metadata.
 activitymeta <- read.table(".\\UCI HAR Dataset\\activity_labels.txt")
 #Apply variable names
@@ -107,10 +107,10 @@ rm(activitymeta,out1, out2, out3)
 
 #From the data set in step 4, creates a second, 
 #independent tidy data set with the average of each variable for each activity and each subject.
-group_data <- group_by(data, activity, subjectid,average = mean(value))
+group_data <- group_by(data, activity, subjectid)
 
 
-write.table(group_data, "observationsummary.txt", row.name=TRUE)
+write.table(summarize(group_data,mean(value)), "observationsummary.txt", row.name=TRUE)
 
 
 

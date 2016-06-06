@@ -1,17 +1,10 @@
-#Getting & Cleansing Data Week 4 - Requirements
-#Merges the training and the test sets to create one data set.
-#Extracts only the measurements on the mean and standard deviation for each measurement.
-#Uses descriptive activity names to name the activities in the data set
-#Appropriately labels the data set with descriptive variable names.
-#From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
-
 library(reshape2)
 library(dplyr)
 
 rm(list=ls())
 
 
-filename <- "getdata_dataset.zip"
+filename <- "getdata_dataset.zip" 
 ## Download and unzip the dataset:
 if (!file.exists(filename)){
   fileURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip "
@@ -87,6 +80,7 @@ out1 <- do.call(rbind, out1)
 colnames(out1) <- c("key","calculation","axis")
 out1 <- as.data.frame(out1)
 
+
 out2 <- as.list(substring(out1$key, first = 1, last = 1))
 out2 <- do.call(rbind, out2)
 out2 <- as.data.frame(out2)
@@ -97,15 +91,16 @@ out3 <- do.call(rbind, out3)
 out3 <- as.data.frame(out3)
 colnames(out3) <- c("feature")
 
-z<- x
-y <- cbind(out3, out2, out1, x)
-x <- y[1:5,]
+x <- cbind(out3, out2, out1, x)
 
 #Extract only the measurements on the mean and standard deviation for each measurement.
 data <- x[x$calculation %in% c("mean()","std()"),-c(3,8,10)]
 data <- merge(data, activitymeta, id="activityid")
+
 #Reorder columns for dataset readability
 data <- data[,c(1,10,7,6,3,2,5,4,8,9)]
+data[!(data$axis %in% c("z","y","x")), 7] <- NA
+data[!(data$signal %in% c("f","t")), 5] <- NA
 #Garbage collect
 rm(activitymeta,out1, out2, out3)
 
